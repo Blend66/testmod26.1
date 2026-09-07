@@ -86,10 +86,13 @@ public final class CustomRender {
         }
     }
     private static void renderMeshes(LevelRenderContext context){
-
         int i = 0;
-        Vec3 camera = context.levelState().cameraRenderState.pos;
-        Matrix4f view =  new Matrix4f(context.poseStack().last().pose()).translate((float)-camera.x, (float)-camera.y, (float)-camera.z);
+        var camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+        Vec3 camPos = context.levelState().cameraRenderState.pos;
+        Matrix4f view =  new Matrix4f()
+                .rotateX((float)Math.toRadians(camera.xRot()))
+                .rotateY((float) Math.toRadians(camera.yRot() + 180.0f))
+                .translate((float) -camPos.x, (float) -camPos.y, (float) -camPos.z);
         for (OBBRenderState state : OBBRenderStates){
             Matrix4f modelView = new Matrix4f(view).translate(state.position().toVector3f());
             objectBuffers.set(i, BasicMashes.createOBBBufferInfo(state, modelView));
@@ -147,7 +150,7 @@ public final class CustomRender {
     private static void draw(Minecraft client, LevelRenderContext context, GpuBuffer vertexBuffer, GpuBuffer indexBuffer) {
         age++;
         GpuBufferSlice dynamicTransforms = RenderSystem.getDynamicUniforms()
-                .writeTransform(RenderSystem.getModelViewMatrix(), COLOR_MODULATION, MODEL_OFFSET, TEXTURE_MATRIX);
+                .writeTransform(new Matrix4f(), COLOR_MODULATION, MODEL_OFFSET, TEXTURE_MATRIX);
         try (RenderPass renderPass = RenderSystem.getDevice()
                 .createCommandEncoder()
                 .createRenderPass(

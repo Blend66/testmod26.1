@@ -44,7 +44,8 @@ public class TestModClient implements ClientModInitializer {
 			//OBBManager.checkIntersections();
 			CustomRender.age++;
 			if (client.player != null){
-				OBBManager.update(client.player.getYRot(), client.player.getPosition(1.0f), false);
+				OBBManager.checkIntersections();
+				OBBManager.update(client.player.yBodyRot, client.player.getPosition(1.0f), false);
 				//TestMod.LOGGER.debug("OBB count: {}\nPlayer count: {}", OBBManager.getOBBcount(), OBBManager.getPlayercount());
 				//if (this.test_key.consumeClick()){
 					//
