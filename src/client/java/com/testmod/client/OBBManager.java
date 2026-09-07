@@ -90,7 +90,7 @@ public class OBBManager {
     public static void update(float bodyRot, Vec3 position, boolean enableLogging){ //VERY SLOW WITH LOGGING. MAY CREATE VISUAL BUGS VIA DESYNC
         for(Player player : players){
             for (OrientedBoundingBox obb : PlayerToOBBS_map.get(player.getUUID())){
-                //obb.setPosition(position);
+                obb.setPosition(position);
                 Matrix3f rotation = new Matrix3f().identity().rotateY((float)Math.toRadians(-bodyRot));
                 obb.setRotation(rotation);
 

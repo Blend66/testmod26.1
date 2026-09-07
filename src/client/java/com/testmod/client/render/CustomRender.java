@@ -89,8 +89,7 @@ public final class CustomRender {
 
         int i = 0;
         Vec3 camera = context.levelState().cameraRenderState.pos;
-        Matrix4f view =  context.poseStack().last().pose();
-        view.translate((float)-camera.x, (float)-camera.y, (float)-camera.z);
+        Matrix4f view =  new Matrix4f(context.poseStack().last().pose()).translate((float)-camera.x, (float)-camera.y, (float)-camera.z);
         for (OBBRenderState state : OBBRenderStates){
             Matrix4f modelView = new Matrix4f(view).translate(state.position().toVector3f());
             objectBuffers.set(i, BasicMashes.createOBBBufferInfo(state, modelView));
@@ -105,7 +104,7 @@ public final class CustomRender {
     public static void renderAndDrawBox(LevelRenderContext context){
         Minecraft client = Minecraft.getInstance();
         if (DO_RENDER_PASS){
-            if (vertexBuffer == null || vertexBuffer.isClosed()){
+            if (vertexBuffer == null || vertexBuffer.isClosed() || currentObjectCount != OBBManager.getOBBcount()){
                 currentObjectCount = OBBManager.getOBBcount();
                 render(context);
                 setupBuffers();
