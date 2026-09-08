@@ -27,10 +27,10 @@ public class OrientedBoundingBox{
         this.extent = new Vec3( width/2, height/2, depth/2);
         this.origin = origin;
         this.position = position;
-        this.id = OBBManager.registerOBB(this);
         setRotation(rotation);
+        this.id = OBBManager.registerOBB(this);
         this.startTickValues = new DataTracker(this.position, this.rotation);
-        create(this.extent, position, origin);
+        //create(this.extent, position, origin);
         System.out.println("created new OBB with id " + this.id.toString());
     }
     public Vec3 getExtent(){return this.extent;}
@@ -44,9 +44,9 @@ public class OrientedBoundingBox{
                     c.z * extent.z - origin.z);
 
             vertices[i] = position
-                    .add(axisX.multiply(local.x, local.y, local.z))
-                    .add(axisY.multiply(local.x, local.y, local.z))
-                    .add(axisZ.multiply(local.x, local.y, local.z));
+                    .add(axisX.scale(local.x))
+                    .add(axisY.scale(local.y))
+                    .add(axisZ.scale(local.z));
         }
     }
     public void tick(){
@@ -143,6 +143,5 @@ public class OrientedBoundingBox{
     }
     public record DataTracker(Vec3 position,
                                Matrix3f rotation){
-        //Vec3 extent;
     }
 }

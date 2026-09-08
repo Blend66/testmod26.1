@@ -21,8 +21,6 @@ public class HurtBoxRenderLayer extends RenderLayer<AvatarRenderState, PlayerMod
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int lightCoords, AvatarRenderState state, float yRot, float xRot) {
         //test.setPosition(new Vec3(state.x, state.y, state.z));
-        TestModClient.bodyRot = state.bodyRot;
-        TestModClient.Pos = new Vec3(state.x, state.y, state.z);
         if (state instanceof AvatarRenderStateExtension accessor){
             //System.out.println(accessor.test$getUUID().hashCode());
         }

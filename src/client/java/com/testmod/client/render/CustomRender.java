@@ -76,7 +76,7 @@ public final class CustomRender {
         if (!obb.Intersects.isEmpty()){
             color.set(1f, 0f, 0f, 1f);
         }
-        return new OBBRenderState(currentPos, currentRot, obb.getOrigin(), obb.getExtent(), color);
+        return new OBBRenderState(currentPos, currentRot, obb.getOrigin(), obb.getExtent(), color, obb.getId());
     }
     public static void render(LevelRenderContext context){
         if (!OBBRenderStates.isEmpty())
@@ -95,7 +95,8 @@ public final class CustomRender {
                 .translate((float) -camPos.x, (float) -camPos.y, (float) -camPos.z);
         for (OBBRenderState state : OBBRenderStates){
             Matrix4f modelView = new Matrix4f(view).translate(state.position().toVector3f());
-            objectBuffers.set(i, BasicMashes.createOBBBufferInfo(state, modelView));
+            Matrix4f model = new Matrix4f().translate(state.position().toVector3f());
+            objectBuffers.set(i, BasicMashes.createOBBBufferInfo(state, model, view));
             if (objectBuffers.get(i) == null){
                 throw new IllegalStateException("BufferInfo is null");
             }

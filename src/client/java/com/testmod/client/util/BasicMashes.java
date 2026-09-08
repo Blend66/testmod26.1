@@ -1,11 +1,15 @@
 package com.testmod.client.util;
 
+import com.testmod.TestMod;
+import com.testmod.client.OBBManager;
+import com.testmod.client.TestModClient;
 import com.testmod.client.render.OBBRenderState;
 import net.fabricmc.loader.impl.lib.sat4j.core.Vec;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 
 import java.nio.ByteBuffer;
+import java.util.UUID;
 import java.util.Vector;
 
 public class BasicMashes {
@@ -40,8 +44,8 @@ public class BasicMashes {
         info.vertexBuffer = BufferUtils.byteBufferForGpu(8*VertexSize);//VertexSize = 16
         return info;
     }
-    public static BufferInfo createOBBBufferInfo(OBBRenderState state, Matrix4f modelView){
-        BufferInfo info = createOBBMeshByteBuffers(modelView, state.rotation(), state.origin(), state.extent(), state.color());
+    public static BufferInfo createOBBBufferInfo(OBBRenderState state, Matrix4f model, Matrix4f view){
+        BufferInfo info = createOBBMeshByteBuffers(model, view, state.rotation(), state.origin(), state.extent(), state.color(), state.uuid());
         return info;
     }
     /*public static Vector<Vector3f> applyPositionMatrix(Vector<Vector3f> vertices, Matrix4fc positionMatrix, Vector3f globalPos){
@@ -92,8 +96,13 @@ public class BasicMashes {
         return  result;
     }
     //origin is chosen relative to the rectangle center
-    public static BufferInfo createOBBMeshByteBuffers(Matrix4fc positionMatrix, Matrix3f rotation, Vec3 origin, Vec3 extent, Vector4f color){
+    public static BufferInfo createOBBMeshByteBuffers(Matrix4f model, Matrix4f view, Matrix3f rotation, Vec3 origin, Vec3 extent, Vector4f color, UUID uuid){
         BufferInfo info = new BufferInfo();
+        String debug_msg = "";
+        Matrix4f modelView = new Matrix4f(view).mul(model);
+        if (TestModClient.debug_mode){
+            debug_msg += "\n\nOBB " + uuid.toString() + " render mesh vertices:\n";
+        }
         info.vertexBuffer = BufferUtils.byteBufferForGpu(8 * VertexSize);
         Vector3f transformed = new Vector3f();
         Vec3 vertex;
@@ -106,11 +115,23 @@ public class BasicMashes {
                     rotation.m01 * vertex.x + rotation.m11 * vertex.y + rotation.m21 * vertex.z,
                     rotation.m02 * vertex.x + rotation.m12 * vertex.y + rotation.m22 * vertex.z
             );
-            positionMatrix.transformPosition(rotated.toVector3f(), transformed);
-            //System.out.println(rotated.x + " " + rotated.y + " " + rotated.z);
+            modelView.transformPosition(rotated.toVector3f(), transformed);
+            if (TestModClient.debug_mode){
+                debug_msg += "V[" + Integer.toString(i) + "] " + Float.toString(transformed.x) + " " + Float.toString(transformed.y) + " " + Float.toString(transformed.z) + "\n";
+            }
             info.vertexBuffer
                     .putFloat(transformed.x).putFloat(transformed.y).putFloat(transformed.z)
                     .put((byte)(color.x * 255)).put((byte)(color.y * 255)).put((byte)(color.z * 255)).put((byte)(color.w * 255));
+        }
+        if (TestModClient.debug_mode){
+            debug_msg += "OBB " + uuid.toString() + " collision mesh vertices:\n";
+            int i = 0;
+            for (Vec3 obb_vertex : OBBManager.getOBBInstance(uuid).getVertices()){
+                Vector3f transformed_collision_vertex = view.transformPosition(obb_vertex.toVector3f());
+                debug_msg += "V[" + Integer.toString(i) + "] " + Float.toString(transformed_collision_vertex.x) + " " + Float.toString(transformed_collision_vertex.y) + " " + Float.toString(transformed_collision_vertex.z) + "\n";
+                i++;
+            }
+            TestMod.LOGGER.debug(debug_msg);
         }
         info.indexBuffer = BasicMashes.createIndexBufferForBox();
         info.vertexBuffer.flip();

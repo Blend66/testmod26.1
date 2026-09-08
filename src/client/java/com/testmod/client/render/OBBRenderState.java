@@ -5,6 +5,8 @@ import org.joml.Matrix3f;
 import org.joml.Quaternionf;
 import org.joml.Vector4f;
 
+import java.util.UUID;
+
 /*public record OBBRenderState(
         float x0,
         float y0,
@@ -25,9 +27,8 @@ import org.joml.Vector4f;
 public record OBBRenderState(
         Vec3 position,
         Matrix3f rotation,
-
         Vec3 origin,
         Vec3 extent,
-        Vector4f color)
+        Vector4f color, UUID uuid)
 {
 }

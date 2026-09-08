@@ -162,6 +162,13 @@ public class OBBManager {
         }
         return states;
     }
+    public static OrientedBoundingBox getOBBInstance(UUID uuid){
+        if (!OBB_map.containsKey(uuid))
+        {
+            TestMod.LOGGER.error("OBB with uuid: {} does not exists or was discarded", uuid.toString());
+        }
+        return OBB_map.get(uuid);
+    }
     public static void tick(){
         if (players.isEmpty()){return;}
         for (Player player : players){

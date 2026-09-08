@@ -21,8 +21,7 @@ public class TestModClient implements ClientModInitializer {
 
 	public static final double DRAG_DISTANCE = 3d;
 	private static final double DRAG_HEIGHT_OFFSET = 1.5d;
-	public static float bodyRot = 0;
-	public static Vec3 Pos = Vec3.ZERO;
+	public static boolean debug_mode = false;
 	public static final KeyMapping test_key = new KeyMapping("key.test_mod.test", InputConstants.Type.KEYSYM, InputConstants.KEY_F, KeyMapping.Category.DEBUG);
 	OrientedBoundingBox test = new OrientedBoundingBox(3f, 4f, 3f, new Vec3(0f, -40f, 0f), new Vec3(0f, 0f, 0f), new Matrix3f().identity());
 	OrientedBoundingBox test_2 = new OrientedBoundingBox(2f, 2f, 2f, new Vec3(5f, -40f, 0f), new Vec3(0f, 0f, 0f), new Matrix3f().identity());
@@ -47,9 +46,7 @@ public class TestModClient implements ClientModInitializer {
 				OBBManager.tick();
 				//OBBManager.update(false);
 				//TestMod.LOGGER.debug("OBB count: {}\nPlayer count: {}", OBBManager.getOBBcount(), OBBManager.getPlayercount());
-				//if (this.test_key.consumeClick()){
-					//
-				//}
+				debug_mode = test_key.consumeClick();
 					/*
 					Vec3 playerPos = client.player.position();
 					Vec3 lookAt = client.player.getLookAngle();
