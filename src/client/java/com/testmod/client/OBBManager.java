@@ -24,9 +24,10 @@ import java.util.*;
 
 public class OBBManager {
     private static final Map<UUID, OrientedBoundingBox> OBB_map = new HashMap<>();
-    private static final Map<UUID, ArrayList<OrientedBoundingBox>> PlayerToOBBS_map = new HashMap<>();
+    private static final Map<UUID, ArrayList<UUID>> PlayerToOBBS_map = new HashMap<>();
     private static final Map<UUID, PlayerModelPart> OBBuuidToBodyPart = new HashMap<>();
     private static final Vector<Player> players = new Vector<>();
+    private static final Map<UUID, UUID> OBBOwner = new HashMap<>(); //OBB uuid to owner uuid
     private static final Vector<UUID> ids = new Vector<>();
     public static int getOBBcount(){
         return ids.size();
@@ -34,22 +35,25 @@ public class OBBManager {
     public static int getPlayercount(){
         return players.size();
     }
+    //8 pixels on skin = 1 unit
     public static void addPlayerOBBs(Player player){
-        OrientedBoundingBox body = new OrientedBoundingBox(0.66f, 0.5f, 0.33f,
+        float scale = 2f;
+        OrientedBoundingBox body = new OrientedBoundingBox(1f, 1.5f - 0.125f * 0.5f, 0.5f,
                 new Vec3(player.getX(), player.getY(), player.getZ()),
                 Vec3.ZERO, new Matrix3f().identity().rotateY((float)Math.toRadians(player.yBodyRot)));
-        ArrayList<OrientedBoundingBox> parts = new ArrayList<>();
+        ArrayList<UUID> parts = new ArrayList<>();
         players.add(player);
-        parts.add(body);
+        parts.add(body.getId());
         PlayerToOBBS_map.put(player.getUUID(), parts);
         OBBuuidToBodyPart.put(body.getId(), PlayerModelPart.JACKET);
+        OBBOwner.put(body.getId(), player.getUUID());
     }
     public static void removePlayerOBBs(Player player){
-        ArrayList<OrientedBoundingBox> obbsToRemove = PlayerToOBBS_map.get(player.getUUID());
-        for (OrientedBoundingBox obb : obbsToRemove){
-            OBB_map.remove(obb.getId());
-            ids.remove(obb.getId());
-            OBBuuidToBodyPart.remove(obb.getId());
+        ArrayList<UUID> existing = PlayerToOBBS_map.get(player.getUUID());
+        if (existing == null) {return;}
+        ArrayList<UUID> obbsToRemove = new ArrayList<>(existing);
+        for (UUID obb : obbsToRemove){
+            deleteOBB(obb);
         }
         players.remove(player);
         PlayerToOBBS_map.remove(player.getUUID());
@@ -77,22 +81,42 @@ public class OBBManager {
             }
         }
     }
-    public static void deleteOBB(UUID id){
-        OBB_map.remove(id);
+    public static boolean hasOBB(UUID uuid){
+        return ids.contains(uuid);
     }
-    public static void captureStartValues(Minecraft client){
+    public static boolean hasOBB(OrientedBoundingBox obb){
+        return OBB_map.containsValue(obb);
+    }
+    public static void deleteOBB(UUID id){
+        if (!ids.contains(id)){
+            System.err.println("OBB is already removed");
+            return;
+        }
+        OrientedBoundingBox obb = OBB_map.get(id);
+        OBBuuidToBodyPart.remove(id);
+        if (OBBOwner.containsKey(id)){
+            PlayerToOBBS_map.get(OBBOwner.get(id)).remove(id);
+            OBBOwner.remove(id);
+        }
+        OBB_map.remove(id);
+        ids.remove(id);
+        obb.discard();
+        TestMod.LOGGER.debug("OBB with id {} was successfully deleted", id);
+    }
+    public static void tickOBBs(Minecraft client){
         if (ids.isEmpty()){return;}
         for (UUID id : ids) {
             OBB_map.get(id).tick();
         }
     }
     //TODO make proper logging
-    public static void update(float bodyRot, Vec3 position, boolean enableLogging){ //VERY SLOW WITH LOGGING. MAY CREATE VISUAL BUGS VIA DESYNC
+    public static void update(boolean enableLogging){ //VERY SLOW WITH LOGGING. MAY CREATE VISUAL BUGS VIA DESYNC
         for(Player player : players){
-            for (OrientedBoundingBox obb : PlayerToOBBS_map.get(player.getUUID())){
-                obb.setPosition(position);
-                Matrix3f rotation = new Matrix3f().identity().rotateY((float)Math.toRadians(-bodyRot));
-                obb.setRotation(rotation);
+            for (UUID id : PlayerToOBBS_map.get(player.getUUID())){
+                //OrientedBoundingBox obb = OBB_map.get(id);
+                //obb.setPosition(position);
+                //Matrix3f rotation = new Matrix3f().identity().rotateY((float)Math.toRadians(-bodyRot));
+                //obb.setRotation(rotation);
 
             }
 
@@ -137,5 +161,16 @@ public class OBBManager {
             }
         }
         return states;
+    }
+    public static void tick(){
+        if (players.isEmpty()){return;}
+        for (Player player : players){
+            for (UUID id : PlayerToOBBS_map.get(player.getUUID()))
+            {
+                OrientedBoundingBox obb = OBB_map.get(id);
+                obb.setPosition(player.getPosition(1.0f).add(0f, (player.getBbHeight())/2f + 0.125f * 1.25f, 0f));
+                obb.setRotation(new Matrix3f().identity().rotateY((float)Math.toRadians(-player.yBodyRot)));
+            }
+        }
     }
 }

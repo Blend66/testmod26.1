@@ -29,7 +29,7 @@ public class TestModClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ClientEntityEvents.ENTITY_LOAD.register(PlayerOBBInitializer::onEntityLoad);
-		//ClientEntityEvents.ENTITY_UNLOAD.register(PlayerOBBInitializer::onEntityUnload);
+		ClientEntityEvents.ENTITY_UNLOAD.register(PlayerOBBInitializer::onEntityUnload);
 		KeyMappingHelper.registerKeyMapping(test_key);
 		LivingEntityRenderLayerRegistrationCallback.EVENT.register((entityType, entityRenderer, registrationHelper, context) -> {
 			if (entityRenderer instanceof AvatarRenderer<?> avatarEntityRenderer) {
@@ -38,14 +38,14 @@ public class TestModClient implements ClientModInitializer {
 		});
 		LevelRenderEvents.AFTER_TRANSLUCENT_TERRAIN.register(CustomRender::renderAndDrawBox);
 		LevelRenderEvents.END_EXTRACTION.register(CustomRender::extractOBBInfo);
-		ClientTickEvents.START_CLIENT_TICK.register(OBBManager::captureStartValues);
+		ClientTickEvents.START_CLIENT_TICK.register(OBBManager::tickOBBs);
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 		if (Minecraft.getInstance().level != null){
-			//OBBManager.checkIntersections();
 			CustomRender.age++;
 			if (client.player != null){
 				OBBManager.checkIntersections();
-				OBBManager.update(client.player.yBodyRot, client.player.getPosition(1.0f), false);
+				OBBManager.tick();
+				//OBBManager.update(false);
 				//TestMod.LOGGER.debug("OBB count: {}\nPlayer count: {}", OBBManager.getOBBcount(), OBBManager.getPlayercount());
 				//if (this.test_key.consumeClick()){
 					//

@@ -1,5 +1,6 @@
 package com.testmod.client.util;
 
+import com.testmod.TestMod;
 import com.testmod.client.OBBManager;
 import net.minecraft.world.phys.Vec3;
 import org.joml.*;
@@ -13,7 +14,7 @@ public class OrientedBoundingBox{
     private final Vec3 origin;
     private Vec3 position;
     private Matrix3f rotation = new Matrix3f();
-    private final UUID id;
+    private UUID id;
     private Vec3 extent;
     public ArrayList<UUID> Intersects = new ArrayList<>();
     public DataTracker startTickValues;
@@ -52,6 +53,17 @@ public class OrientedBoundingBox{
         updateVertices();
         this.startTickValues = new DataTracker(this.position, this.rotation);
     }
+    public void discard()
+    {
+        if (this.id == null){
+            TestMod.LOGGER.debug("Trying to remove already discarded obb or it's uuid was null");
+            return;
+        }
+        if (OBBManager.hasOBB(this.id)){
+            OBBManager.deleteOBB(this.id);
+        }
+        this.id = null;
+    }
     public void setPosition(Vec3 newPos){
         this.position = newPos;
         updateVertices();
@@ -71,10 +83,7 @@ public class OrientedBoundingBox{
         //this.scaledAxisZ = axisZ.scale(extent.z);
         updateVertices();
     }
-    public void discard()
-    {
-        OBBManager.deleteOBB(this.id);
-    }
+
     private void create(Vec3 extent, Vec3 position, Vec3 origin){
         for (int i = 0; i < 8; i++){
             vertices[i] = axisX.multiply(BasicMashes.LOCAL_CORNERS[i]).multiply(extent).subtract(origin).add(position);
